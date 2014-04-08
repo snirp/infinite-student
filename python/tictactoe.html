@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+  <meta charset=utf-8>
+  <title>AI for playing Tic-Tac-Toe</title>
+  <meta name="description" content="My everlasting quest to improve my programming skills." />
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="keywords" lang="en" content="python, programming, learn, blog, study">
+
+  <link rel='author' href='https://plus.google.com/+RoyPrins_page?rel=author'>
+  <link rel='shortcut icon' type='image/png' href="snirp.github.io/infinite-student/static/images/favicon.png">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <!-- my custom stylesheet -->
+  <link rel="stylesheet" href="snirp.github.io/infinite-student/style.css">
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery.touchswipe/1.6.4/jquery.touchSwipe.min.js"></script>
+  <script src="snirp.github.io/infinite-student/static/js/custom_scripts.js" type='text/javascript'></script>
+  <!--[if lte IE 9]>
+    <script src="snirp.github.io/infinite-student/static/js/html5shiv.js"></script>
+  <![endif]-->
+  <script id='code_1'>
+    $(function() {
+      $("body").swipe( {
+        //Trigger CSS transitions by toggling classes on right / left swipes
+        swipeRight:function(event, direction, distance, duration, fingerCount) {
+          $("nav").addClass("swiped-right");
+          $("main").addClass("swiped-right");
+        },
+        swipeLeft:function(event, direction, distance, duration, fingerCount) {
+          $("nav").removeClass("swiped-right");
+          $("main").removeClass("swiped-right");
+        }
+      });
+    });
+    </script>
+
+
+</head>
+<body id="page-python">
+
+<a id="navbutton">∞</a>
+
+<nav>
+  <h2>the infinite student</h2>
+  <ul id="mainnav">
+    <li class="page-home"><a href="snirp.github.io/infinite-student/">Home</a></li>
+    <li class="page-python"><a href="snirp.github.io/infinite-student/python.html">Python projects</a></li>
+    <li class="page-javascript"><a href="">Javascript projects</a></li>
+    <li class="page-contact"><a href="">Contact</a></li>
+  </ul>
+
+  <ul id="customnav">
+    
+  
+    <li><a href=""><i class="fa fa-rss"></i> Atom feed</a></li>
+     
+  <li>
+    <a href="https://github.com/snirp/infinite-student/blob/master/python/tictactoe.py"><i class="fa fa-github"></i> This project on github</a>
+  </li>
+
+  </ul>
+
+</nav>
+
+<main>
+
+<article>
+  <section>
+    <h3>Tic-Tac-Toe</h3>
+<p>In the game of tic-tac-toe two players take turns to occupy a cell of a 3x3 grid with
+their marks (O's or X's). The player who manages to place three marks in a row, wins
+the game. If both players play a perfect game, the result will always be a draw.
+More on <a href="http://en.wikipedia.org/wiki/Tic-tac-toe">wikipedia</a>.</p>
+<h4>The goal</h4>
+<p>The goal is to create a program that enables a user to compete against an artificial
+intelligence. Additionally we could input any given position and receive the best move
+in return. The program should be able to achieve this in a number of different ways:</p>
+<ol>
+<li>AI_random: Random move: not the best, but useful for testing and for letting your kids play.</li>
+<li>AI_search: Search the game tree for the optimal solution.</li>
+<li>AI_rules: Follow a set of strategic rules to arrive at a move.</li>
+</ol>
+<h4>The grid</h4>
+<p>The positions will be internally handled as list of 9 items of different types:</p>
+<ul>
+<li><code>0</code> for a blank cell;</li>
+<li><code>1</code> for a human player occupied cell;</li>
+<li><code>-1</code> for acomputer occupied cell.</li>
+</ul>
+<p>The position can be initiated as a simple string.
+The <code>parse_grid()</code> function makes sure that it is parsed into a list with the correct values.
+It will soon be explained why it is preferred to use <code>1</code> rather than <code>"X"</code> internally.</p>
+<p>The user will be presented with the current board and a grid of possible moves, numbered
+1 to 9. The <code>ask_input()</code> function will call <code>print_grid()</code> twice to pretty-print the
+respective grids.</p>
+<div class="codehilite"><pre><span class="c"># Handle the markings as integers internally</span>
+<span class="n">blank</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">human</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">computer</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+
+<span class="k">def</span> <span class="nf">parse_grid</span><span class="p">(</span><span class="n">position</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Parse the position-iterable into a list of length 9&quot;&quot;&quot;</span>
+    <span class="c"># Mapping of possible marks:</span>
+    <span class="n">markmap</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;X&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>  <span class="s">&#39;x&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>     <span class="c"># accepted human marks</span>
+               <span class="s">&#39;O&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;o&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>    <span class="c"># accepted computer marks</span>
+               <span class="s">&#39; &#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="s">&#39;.&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>     <span class="c"># accpeted blanks</span>
+    <span class="n">grid</span> <span class="o">=</span> <span class="p">[</span><span class="n">markmap</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">position</span> <span class="k">if</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">markmap</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">grid</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">For the grid [ 1, 0, 1, 0, -1, 0, 0, -1, 1 ]</span>
+<span class="sd">the printed playboard should resemble:</span>
+
+<span class="sd">X | . | X</span>
+<span class="sd">- + - + -</span>
+<span class="sd">. | O | .</span>
+<span class="sd">- + - + -</span>
+<span class="sd">. | O | X</span>
+
+<span class="sd">And the legal moves are presented as:</span>
+
+<span class="sd">  | 2 |</span>
+<span class="sd">- + - + -</span>
+<span class="sd">4 |   | 6</span>
+<span class="sd">- + - + -</span>
+<span class="sd">7 |   |</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="k">def</span> <span class="nf">print_grid</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">boardprint</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="c"># Transform the grid into a 3x3 board:</span>
+    <span class="n">board</span> <span class="o">=</span> <span class="p">([</span><span class="n">grid</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="p">:</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">3</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)])</span>
+    <span class="n">divider</span> <span class="o">=</span> <span class="s">&#39;- + - + -&#39;</span>
+    <span class="c"># Reversed mapping for markings:</span>
+    <span class="n">printmap</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="s">&#39;X&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="s">&#39;O&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span> <span class="s">&#39;.&#39;</span><span class="p">}</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">board</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">boardprint</span><span class="p">:</span>
+            <span class="c"># we are printing a playboard.</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39; | &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">printmap</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">board</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># we are printing legal moves or value analysis</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39; | &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">board</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">divider</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">ask_input</span><span class="p">(</span><span class="n">grid</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;print current grid and legal moves&quot;&quot;&quot;</span>
+    <span class="n">print_grid</span><span class="p">(</span><span class="n">grid</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">Possible moves:&quot;</span><span class="p">)</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">grid</span><span class="p">)</span>  <span class="c"># create a grid of legal moves</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">9</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">==</span> <span class="n">blank</span><span class="p">:</span>
+            <span class="n">options</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">options</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot; &quot;</span>
+    <span class="c"># print legal moves</span>
+    <span class="n">print_grid</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">boardprint</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+</pre></div>
+
+
+<h4>Winning at Tic-Tac-Toe</h4>
+<p>The tic-tac-toe grid has 8 'winlines': the horizontals, the diagonals and the verticals.
+If a player occupies all three cells on any winline, he is the winner.</p>
+<p>Some of the AI algorithms rely heavily on frequently trying to determine
+the winner. This means that writing an effective <code>winner()</code> algorithm really pays off.
+To speed up our algorithm we make the following choices:</p>
+<ul>
+<li>We only determine whether the current players is a winner. Since you can
+only win by making a move, there is no need to check for a win by the opponent.</li>
+<li>We handle the player markings internally as -1 and +1 instead of "X" and "O".
+This allows for faster comparisons. As an added benefit, it allows for easier
+switching between the players.</li>
+<li>If a player has less than 3 markings on the board, there is no need to
+further check whether he is a winner.</li>
+<li>When checking the lines, we <code>break</code> when we first encouter a marking that
+does not equal the player's. This eliminates the need to check the remaining
+cells on that line.</li>
+</ul>
+<p>Further optimizations are conceivable, but not (yet) implemented:</p>
+<ul>
+<li>Consider the most recent move: determining the winner will only be relevant
+for the lines on which the most recent move took place. We now evaluate all 8
+lines, but that can be reduced to an avarage of 2.8 lines per move.</li>
+<li>Define the winlines as slices rather than tuples of indices.</li>
+</ul>
+<div class="codehilite"><pre><span class="c"># tuples of grid-indices that define the winning lines</span>
+<span class="n">winlines</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>  <span class="c"># horizontals</span>
+    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>  <span class="c"># verticals</span>
+    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="p">)</span>           <span class="c"># diagonals</span>
+
+
+<span class="k">def</span> <span class="nf">winner</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">player</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Verify whether the player is a winner&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">grid</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">player</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">False</span>  <span class="c"># no winner with less than 3 moves</span>
+    <span class="c"># Check all winlines.</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">winlines</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+            <span class="c"># Break at the first incorrect occurence</span>
+            <span class="k">if</span> <span class="n">grid</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">!=</span> <span class="n">player</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+    <span class="k">return</span> <span class="bp">False</span>
+</pre></div>
+
+
+<h4>Initialize play</h4>
+<p>The player can be either human: ( <code>'X'</code> or <code>-1</code> ), or computer ( <code>'O'</code> or <code>-1</code> ). We
+can start from a blank grid or we can initiate a custom position. This
+is handled in the <code>play()</code> function, which will also check for a premature
+win by either side.</p>
+<h4>Taking turns</h4>
+<p>The <code>player_move()</code> function is a recursive function that lets the human
+and the computer player alternate turns. After each turn, we evaluate
+if it was the winning move or whether a draw is reached. Since we check
+for a win first, it is safe to assume that any full board equates a draw.</p>
+<p>The human player's move is found by asking for user input as decribed earlier
+under 'The grid'. The computer move can be found by calling one of the <code>ai_...()</code>
+functions, which we will describe in more detail.</p>
+<div class="codehilite"><pre><span class="k">def</span> <span class="nf">play</span><span class="p">(</span><span class="n">human_first</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="s">&quot;.&quot;</span><span class="o">*</span><span class="mi">9</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Initialize play</span>
+<span class="sd">      - human_first: this is used to determine the first move;</span>
+<span class="sd">      - position: by default a blank grid is initiated.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">grid</span> <span class="o">=</span> <span class="n">parse_grid</span><span class="p">(</span><span class="n">position</span><span class="p">)</span>
+    <span class="c"># Check for unplayable grids</span>
+    <span class="k">if</span> <span class="n">winner</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">human</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;You won without playing.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">winner</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">computer</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;The computer won without playing.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">human_first</span><span class="p">:</span>
+        <span class="n">player</span> <span class="o">=</span> <span class="n">human</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">player</span> <span class="o">=</span> <span class="n">computer</span>
+    <span class="n">player_move</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">player</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">player_move</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">player</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Recursive function to handle player moves&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">grid</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">blank</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;It is a draw.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">player</span> <span class="o">==</span> <span class="n">human</span><span class="p">:</span>
+        <span class="c"># Print the current board and legl moves:</span>
+        <span class="n">ask_input</span><span class="p">(</span><span class="n">grid</span><span class="p">)</span>
+        <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="n">move</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s">&quot;Your move: &quot;</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">move</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">move</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;Choose a number.&#39;</span><span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">grid</span><span class="p">[</span><span class="n">move</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">blank</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;That square is taken.&#39;</span><span class="p">)</span>
+        <span class="n">grid</span><span class="p">[</span><span class="n">move</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">player</span>
+        <span class="k">if</span> <span class="n">winner</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">player</span><span class="p">):</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&quot;winning move!&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">player_move</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">computer</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c"># change to a different &quot;ai_&quot; function if needed.</span>
+        <span class="n">move</span> <span class="o">=</span> <span class="n">ai_search</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">computer</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;Computer plays: &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">move</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">grid</span><span class="p">[</span><span class="n">move</span><span class="p">]</span> <span class="o">=</span> <span class="n">computer</span>
+        <span class="k">if</span> <span class="n">winner</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">computer</span><span class="p">):</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&quot;Oops, the computer won&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">player_move</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">human</span><span class="p">)</span>
+</pre></div>
+
+
+<h4>Artificial intelligence</h4>
+<p>All the artificial intelligence algorithms take a grid and
+return the optimal move. We have three different algorithms:</p>
+<ul>
+<li>Random <code>ai_random()</code>: this returns a random rather than optimal move. Usually
+easy to beat and useful to check the other algorithms.</li>
+<li>Negamax <code>ai_search()</code> and <code>move_value()</code>: follows a simplified Minimax algorithm.</li>
+<li>Rule-based <code>ai_rules()</code>: follows simple strategy rules.</li>
+</ul>
+<div class="codehilite"><pre><span class="k">def</span> <span class="nf">ai_random</span><span class="p">(</span><span class="n">grid</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Simple AI that plays a random move&quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">random</span>
+    <span class="n">moves</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">grid</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">grid</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">blank</span><span class="p">:</span>
+            <span class="n">moves</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+    <span class="n">move</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">moves</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">move</span>
+</pre></div>
+
+
+<h4>Negamax algorithm</h4>
+<p>Negamax is a special case of the so called Minimax algorithms. They all rely on
+building a "game tree" of every possible move. For any position that is on the
+end of the tree, a "value" is calculated. A good position (for the active player)
+is indicated by a high value; a bad position by a low value.</p>
+<p>When we assume that both the player and his opponent play a perfect game, we can
+propagate these values up the tree. In a perfect game, the opponent makes the move
+that minimizes the outcome for the player. The player will choose the move that
+maximizes the outcome. Hence Mini-Max.</p>
+<p><img alt="Minimax tree" src="snirp.github.io/infinite-student/static/images/minimax-tree.png" /></p>
+<p>The image above is an example that calculates a fixed number of moves. The various
+node values are calculated by evaluating the strength, using heuristics. This is
+more typical for games of higher complexity, such as chess, go or reversi.</p>
+<p>Because tic-tac-toe is much less complex than aformentioned games, we can calculate
+all possible positions. That means our tree will end in a win or a draw every time.</p>
+<h4>Implement the Negamax</h4>
+<p>Wikipedia has the <a href="http://en.wikipedia.org/wiki/Negamax">following</a> to say about implementing
+a negamax algorithm:</p>
+<blockquote>
+<p>[...] The value of a position to player A in such a game is the negation of the value
+to player B. Thus, the player on move looks for a move that maximizes the negation
+of the value of the position resulting from the move: this successor position must
+by definition have been valued by the opponent. The reasoning of the previous sentence
+works regardless of whether A or B is on move. This means that a single procedure
+can be used to value both positions.</p>
+</blockquote>
+<p>We can implement this with a simple recursive function <code>value()</code>. For a given move, it
+calculates the values of all the opponents moves. From this, it takes the best one (max).
+We can then negate the value to arrive at the player's value.</p>
+<p>This is calculated recursively until the return values are reached:</p>
+<ul>
+<li><code>2</code> for the winnning move</li>
+<li><code>1</code> for a draw.</li>
+</ul>
+<p>A player cannot make a move that directly causes a loss, so we can safely disregard that option.</p>
+<p>The function <code>ai_search()</code> simply calls the <code>value()</code> function for all possible moves and
+returns the (first) move of highest value.</p>
+<p>There is room for optimization: when one of the opponent moves results in a win, there
+is no point in calculating the remaining moves since we found the max-value already.
+This is what so-called 'pruning' is for and it is easy enough to
+<a href="http://en.wikipedia.org/wiki/Negamax#NegaMax_with_Alpha_Beta_Pruning">implement</a>.</p>
+<div class="codehilite"><pre><span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">player</span><span class="p">,</span> <span class="n">move</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A negamax-style recursive depth first search.&quot;&quot;&quot;</span>
+    <span class="n">grid</span> <span class="o">=</span> <span class="n">grid</span><span class="p">[:]</span>
+    <span class="n">grid</span><span class="p">[</span><span class="n">move</span><span class="p">]</span> <span class="o">=</span> <span class="n">player</span>
+    <span class="k">if</span> <span class="n">winner</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">player</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mi">2</span>
+    <span class="k">if</span> <span class="n">grid</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">blank</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+    <span class="n">values</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">9</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">grid</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">blank</span><span class="p">:</span>
+            <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="o">-</span><span class="n">player</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+    <span class="c"># assume the opponent&#39;s best move (max) and reverse it.</span>
+    <span class="k">return</span> <span class="mi">2</span><span class="o">-</span><span class="nb">max</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">ai_search</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">player</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Brute force AI that picks the first optimal move&quot;&quot;&quot;</span>
+    <span class="n">movevalues</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">9</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">grid</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">!=</span> <span class="n">blank</span><span class="p">:</span>
+            <span class="n">movevalues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">movevalues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">player</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+    <span class="c"># the highest valued move</span>
+    <span class="k">return</span> <span class="n">movevalues</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">movevalues</span><span class="p">))</span>
+</pre></div>
+
+
+<h4>Rule-based strategy</h4>
+<p>Try and find the best move, using heuristics. We will follow the
+<a href="http://en.wikipedia.org/wiki/Tic-tac-toe#Strategy">tic-tac-toe strategy guide</a> from wikipedia:</p>
+<ol>
+<li>Win: If the player has two in a row, they can place a third to get three in a row.</li>
+<li>Block: If the opponent has two in a row, the player must play the third themself to block the opponent.</li>
+<li>Fork: Create an opportunity where the player has two threats to win (two non-blocked lines of 2).</li>
+<li>Blocking an opponent's fork:</li>
+<li>Option 1: The player should create two in a row to force the opponent into defending, as long as it doesn't result in them creating a fork. For example, if "X" has a corner, "O" has the center, and "X" has the opposite corner as well, "O" must not play a corner in order to win. (Playing a corner in this scenario creates a fork for "X" to win.)</li>
+<li>Option 2: If there is a configuration where the opponent can fork, the player should block that fork.</li>
+<li>Center: A player marks the center. (If it is the first move of the game, playing on a corner gives "O" more opportunities to make a mistake and may therefore be the better choice; however, it makes no difference between perfect players.)</li>
+<li>Opposite corner: If the opponent is in the corner, the player plays the opposite corner.</li>
+<li>Empty corner: The player plays in a corner square.</li>
+<li>Empty side: The player plays in a middle square on any of the 4 sides.</li>
+</ol>
+<p>The algorithm below does a naive implementation of this strategy guide. It suffers
+from some mistakes and sections of code that repeat each other. That makes it easy
+to beat, so have a go.</p>
+<p>To do a proper implementation, you would have to look two steps ahead and the
+algorithm becomes rather complex. More complex than I am willing to pursue at
+this moment.</p>
+<div class="codehilite"><pre><span class="k">def</span> <span class="nf">ai_rules</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">player</span><span class="p">):</span>
+    <span class="c"># 1: make a winning move</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">winlines</span><span class="p">:</span>
+        <span class="n">gridline</span> <span class="o">=</span> <span class="p">[</span><span class="n">grid</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">line</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">gridline</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">player</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> \
+                <span class="ow">and</span> <span class="n">gridline</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">blank</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">line</span><span class="p">[</span><span class="n">gridline</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">blank</span><span class="p">)]</span>
+    <span class="c"># 2: prevent winning move</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">winlines</span><span class="p">:</span>
+        <span class="n">gridline</span> <span class="o">=</span> <span class="p">[</span><span class="n">grid</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">line</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">gridline</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="o">-</span><span class="n">player</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> \
+                <span class="ow">and</span> <span class="n">gridline</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">blank</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">line</span><span class="p">[</span><span class="n">gridline</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">blank</span><span class="p">)]</span>
+    <span class="c"># 3: create fork</span>
+    <span class="c"># This is not testing for &#39;pure&#39; forks: they can overlap!</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">grid</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">grid</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">blank</span><span class="p">:</span>
+            <span class="n">grid</span> <span class="o">=</span> <span class="n">grid</span><span class="p">[:]</span>  <span class="c"># copy grid</span>
+            <span class="n">grid</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">player</span>
+            <span class="n">forkcount</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">winlines</span><span class="p">:</span>
+                <span class="n">gridline</span> <span class="o">=</span> <span class="p">[</span><span class="n">grid</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">line</span><span class="p">]</span>
+
+                <span class="k">if</span> <span class="n">gridline</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">player</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> \
+                        <span class="ow">and</span> <span class="n">gridline</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">blank</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">forkcount</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">forkcount</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                        <span class="k">print</span><span class="p">(</span><span class="n">forkcount</span><span class="p">)</span>
+                        <span class="k">return</span> <span class="n">i</span>
+    <span class="c"># 4: block a fork</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">grid</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">grid</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">blank</span><span class="p">:</span>
+            <span class="n">grid</span> <span class="o">=</span> <span class="n">grid</span><span class="p">[:]</span>  <span class="c"># copy grid</span>
+            <span class="n">grid</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">player</span>
+            <span class="n">forkcount</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">winlines</span><span class="p">:</span>
+                <span class="n">gridline</span> <span class="o">=</span> <span class="p">[</span><span class="n">grid</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">line</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">gridline</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="o">-</span><span class="n">player</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> \
+                        <span class="ow">and</span> <span class="n">gridline</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">blank</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&quot;fork&quot;</span><span class="p">)</span>
+                    <span class="n">forkcount</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">forkcount</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="n">i</span>
+    <span class="c"># 5: play center</span>
+    <span class="k">if</span> <span class="n">grid</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">==</span> <span class="n">blank</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">4</span>
+    <span class="c"># 6: play opposite corner</span>
+    <span class="n">opposite_corners</span> <span class="o">=</span> <span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">opposite_corners</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">grid</span><span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">==</span> <span class="o">-</span><span class="n">player</span> <span class="ow">and</span> <span class="n">grid</span><span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">==</span> <span class="n">blank</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="c"># 7: play corner</span>
+    <span class="n">corners</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">corners</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">grid</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">==</span> <span class="n">blank</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">c</span>
+    <span class="c"># 8: return random move (officially middle sides)</span>
+    <span class="k">return</span> <span class="n">ai_random</span><span class="p">(</span><span class="n">grid</span><span class="p">)</span>
+</pre></div>
+
+
+<h4>Testing the game</h4>
+<p>Let's pit our artificial intelligence against 100 monkies. Every
+monkey gets to start and will make random moves. As we stated, a
+perfect player will never lose a game. Not even against 100 consecutive
+monkies.</p>
+<p>In the <code>monkeytest()</code> function, the monkies make use of <code>ai_random()</code>
+for their moves. The function returns the number of times that our
+algortihm wins and draws against the monkeys. It has yet to fail the
+monkeytest :)</p>
+<div class="codehilite"><pre><span class="k">def</span> <span class="nf">monkeytest</span><span class="p">(</span><span class="n">ai</span><span class="o">=</span><span class="n">ai_search</span><span class="p">,</span> <span class="n">monkies</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Test the ai against random opponents&quot;&quot;&quot;</span>
+    <span class="n">wins</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">draws</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">monkies</span><span class="p">):</span>
+        <span class="n">grid</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="mi">9</span>
+        <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="n">grid</span><span class="p">[</span><span class="n">ai_random</span><span class="p">(</span><span class="n">grid</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">winner</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&quot;Oops, the monkies won.&quot;</span><span class="p">)</span>
+            <span class="n">grid</span><span class="p">[</span><span class="n">ai</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="k">if</span> <span class="n">winner</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+                <span class="n">wins</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">break</span>
+            <span class="k">elif</span> <span class="n">grid</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">draws</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">break</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;wins: </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">wins</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;draws: </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">draws</span><span class="p">)</span>
+</pre></div>
+
+
+<h4>Run the game</h4>
+<p>You can start the game from any position. Uncomment the <code>monkeytest</code>
+line to start the testing.</p>
+<div class="codehilite"><pre><span class="n">pos1</span> <span class="o">=</span>  <span class="s">&#39;...&#39;</span> \
+        <span class="s">&#39;...&#39;</span> \
+        <span class="s">&#39;...&#39;</span>
+
+<span class="n">pos2</span> <span class="o">=</span>  <span class="s">&#39;.OX&#39;</span> \
+        <span class="s">&#39;.X.&#39;</span> \
+        <span class="s">&#39;O..&#39;</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
+
+    <span class="c"># uncomment the next line to run the tests:</span>
+    <span class="c">#monkeytest(monkies=20)</span>
+
+    <span class="n">play</span><span class="p">(</span><span class="n">position</span><span class="o">=</span><span class="n">pos1</span><span class="p">)</span>
+</pre></div>
+
+
+<h3>References</h3>
+<p>The following resources have been helpful in creating this code:</p>
+<ul>
+<li><a href="http://www.chess.com/blog/zaifrun/creating-a-chess-engine-part-2">Creating a chess engine, by Martin Knudsen</a></li>
+<li><a href="http://stackoverflow.com/questions/125557/what-algorithm-for-a-tic-tac-toe-game-can-i-use-to-determine-the-best-move-for_">Stackoverflow discussion on tac-tac-toe</a></li>
+<li><a href="http://rowdy.msudenver.edu/~gordona/cs1050/progs/tictactoermccsc.pdf">General algorithm for tic-tac-toe by Aaron Gordon</a></li>
+<li><a href="http://norvig.com/sudoku.html">Sudoku solver, by Peter Norvig</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Tic-tac-toe">Wikipedia article on Tic-Tac-Toe</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Game_theory">Wikipedia article on Game Theory</a></li>
+<li><a href="http://www.hamedahmadi.com/gametree/">An Introduction to Game Tree Algorithms, by Hamed Ahmadi</a></li>
+</ul>
+  </section>
+  <section>
+    <!--DISQUS code-->
+    <div id="disqus_container">
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'snirp-eternal'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+    </div>
+  </section>
+</article>
+
+</main>
+</body>
+</html>

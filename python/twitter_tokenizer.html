@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+  <meta charset=utf-8>
+  <title>Twitter tokenizer and sentiment analysis</title>
+  <meta name="description" content="My everlasting quest to improve my programming skills." />
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="keywords" lang="en" content="python, programming, learn, blog, study">
+
+  <link rel='author' href='https://plus.google.com/+RoyPrins_page?rel=author'>
+  <link rel='shortcut icon' type='image/png' href="snirp.github.io/infinite-student/static/images/favicon.png">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <!-- my custom stylesheet -->
+  <link rel="stylesheet" href="snirp.github.io/infinite-student/style.css">
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery.touchswipe/1.6.4/jquery.touchSwipe.min.js"></script>
+  <script src="snirp.github.io/infinite-student/static/js/custom_scripts.js" type='text/javascript'></script>
+  <!--[if lte IE 9]>
+    <script src="snirp.github.io/infinite-student/static/js/html5shiv.js"></script>
+  <![endif]-->
+  <script id='code_1'>
+    $(function() {
+      $("body").swipe( {
+        //Trigger CSS transitions by toggling classes on right / left swipes
+        swipeRight:function(event, direction, distance, duration, fingerCount) {
+          $("nav").addClass("swiped-right");
+          $("main").addClass("swiped-right");
+        },
+        swipeLeft:function(event, direction, distance, duration, fingerCount) {
+          $("nav").removeClass("swiped-right");
+          $("main").removeClass("swiped-right");
+        }
+      });
+    });
+    </script>
+
+
+</head>
+<body id="page-python">
+
+<a id="navbutton">∞</a>
+
+<nav>
+  <h2>the infinite student</h2>
+  <ul id="mainnav">
+    <li class="page-home"><a href="snirp.github.io/infinite-student/">Home</a></li>
+    <li class="page-python"><a href="snirp.github.io/infinite-student/python.html">Python projects</a></li>
+    <li class="page-javascript"><a href="">Javascript projects</a></li>
+    <li class="page-contact"><a href="">Contact</a></li>
+  </ul>
+
+  <ul id="customnav">
+    
+  
+    <li><a href=""><i class="fa fa-rss"></i> Atom feed</a></li>
+     
+  <li>
+    <a href="https://github.com/snirp/infinite-student/blob/master/python/twitter_tokenizer.py"><i class="fa fa-github"></i> This project on github</a>
+  </li>
+
+  </ul>
+
+</nav>
+
+<main>
+
+<article>
+  <section>
+    <h3>Tokenizing twitter</h3>
+<p>Dit is de uitleg helpt het als ik een zit vol tik, of maa Dit is de uitleg helpt het als ik een zit vol tik, of maa
+Dit is de uitleg helpt het als ik een zit vol tik, of maa
+Dit is de uitleg helpt het als ik een zit vol tik, of maaDit is de uitleg helpt het als ik een zit vol tik, of maa</p>
+<h4>tweede kop</h4>
+<div class="codehilite"><pre><span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">from</span> <span class="nn">HTMLParser</span> <span class="kn">import</span> <span class="n">HTMLParser</span>
+<span class="kn">import</span> <span class="nn">regex</span> <span class="kn">as</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">nltk</span>
+<span class="kn">import</span> <span class="nn">csv</span>
+
+
+<span class="n">p_URL</span> <span class="o">=</span> <span class="s">r&#39;http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&amp;+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+&#39;</span>
+<span class="n">p_EMOTICON</span> <span class="o">=</span> <span class="s">ur&quot;&quot;&quot;</span>
+<span class="s">    ツ | ☹ | ☺ | ♥ | ㋡ | ♡ |    # Single character emoticons / emoji&#39;s</span>
+<span class="s">    &lt;3 |                         # Alternate</span>
+<span class="s">    (?:                          # Sideways facial expressions :-))</span>
+<span class="s">        [&lt;&gt;]?</span>
+<span class="s">        [:;=8X]                         # - eyes</span>
+<span class="s">        [\-o\*\&#39;]?                      # - optional nose</span>
+<span class="s">        [\)\]\(\[dDpPOo/\:\}\{@\|\\]+   # - mouth</span>
+<span class="s">        |</span>
+<span class="s">        [\)\]\(\[dDpPOo/\:\}\{@\|\\]+   # - mouth</span>
+<span class="s">        [\-o\*\&#39;]?                      # - optional nose</span>
+<span class="s">        [:;=8]                          # - eyes</span>
+<span class="s">        [&lt;&gt;]?</span>
+<span class="s">    ) |</span>
+<span class="s">    (?:                          # Upright facial expressions (^_^)</span>
+<span class="s">        [\({]?                          # - optional left circumference</span>
+<span class="s">        [\-\^\*&gt;&lt;OoXx@0]                # - left eye</span>
+<span class="s">        [_\.o]                          # - mouth / nose</span>
+<span class="s">        [\-\^\*&gt;&lt;OoXx@0]                # - right eye</span>
+<span class="s">        [\)}]?                          # - optional right circumference</span>
+<span class="s">    )</span>
+<span class="s">    &quot;&quot;&quot;</span>
+<span class="n">p_HANDLE</span> <span class="o">=</span> <span class="s">r&#39;(?:@[\w_]{1,15})&#39;</span>
+<span class="n">p_HASHTAG</span> <span class="o">=</span> <span class="s">r&quot;&quot;&quot;(?:\#+[\w_]+[\w\&#39;_\-]*[\w_]+)&quot;&quot;&quot;</span>
+<span class="n">p_WORD</span> <span class="o">=</span> <span class="s">ur&quot;[\p{L}][\p{L}&#39;’\-*]+&quot;</span>
+
+
+<span class="c">#functions</span>
+<span class="k">def</span> <span class="nf">f_EMOTICON</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;limit character sequence to 2: :-)))) &gt; :-))&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">r&#39;(.)\1{2,}&#39;</span><span class="p">,</span> <span class="s">r&#39;\1\1&#39;</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">f_HANDLE</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">t</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">f_HASHTAG</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;retain ALLCAPS else lowercase: #BAD &gt; #BAD,   #Bad &gt; #bad&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">t</span> <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="n">t</span> <span class="k">else</span> <span class="n">t</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">f_WORD</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; - retain ALLCAPS else lowercase: BAD &gt; BAD,   Bad &gt; bad</span>
+<span class="sd">        - limit character sequence to 3: coooool &gt; coool&quot;&quot;&quot;</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">t</span> <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="n">t</span> <span class="k">else</span> <span class="n">t</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">r&#39;(.)\1{3,}&#39;</span><span class="p">,</span> <span class="s">r&#39;\1\1\1&#39;</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+
+<span class="c">#lexer rules have a name, pattern (token recognition) and a function (postprocessing)</span>
+<span class="n">lexrules</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="s">&quot;URL&quot;</span><span class="p">,</span>       <span class="n">p_URL</span><span class="p">,</span>      <span class="bp">None</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;EMOTICON&quot;</span><span class="p">,</span>  <span class="n">p_EMOTICON</span><span class="p">,</span> <span class="n">f_EMOTICON</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;HANDLE&quot;</span><span class="p">,</span>    <span class="n">p_HANDLE</span><span class="p">,</span>   <span class="n">f_HANDLE</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;HASHTAG&quot;</span><span class="p">,</span>   <span class="n">p_HASHTAG</span><span class="p">,</span>  <span class="n">f_HASHTAG</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;WORD&quot;</span><span class="p">,</span>      <span class="n">p_WORD</span><span class="p">,</span>     <span class="n">f_WORD</span><span class="p">),</span>
+<span class="p">]</span>
+
+<span class="c">#commonly used words that do not ususally tranfer sentiment</span>
+<span class="n">stopwords</span> <span class="o">=</span> <span class="p">(</span><span class="s">&quot;the&quot;</span><span class="p">,</span> <span class="s">&quot;be&quot;</span><span class="p">,</span> <span class="s">&quot;to&quot;</span><span class="p">,</span> <span class="s">&quot;of&quot;</span><span class="p">,</span> <span class="s">&quot;and&quot;</span><span class="p">,</span> <span class="s">&quot;a&quot;</span><span class="p">,</span> <span class="s">&quot;in&quot;</span><span class="p">,</span> <span class="s">&quot;that&quot;</span><span class="p">,</span> <span class="s">&quot;have&quot;</span><span class="p">,</span> <span class="s">&quot;i&quot;</span><span class="p">,</span> <span class="s">&quot;it&quot;</span><span class="p">,</span> <span class="s">&quot;for&quot;</span><span class="p">,</span> <span class="s">&quot;not&quot;</span><span class="p">,</span> <span class="s">&quot;on&quot;</span><span class="p">,</span> <span class="s">&quot;with&quot;</span><span class="p">,</span> <span class="s">&quot;he&quot;</span><span class="p">,</span>
+             <span class="s">&quot;as&quot;</span><span class="p">,</span> <span class="s">&quot;you&quot;</span><span class="p">,</span> <span class="s">&quot;do&quot;</span><span class="p">,</span> <span class="s">&quot;at&quot;</span><span class="p">,</span> <span class="s">&quot;this&quot;</span><span class="p">,</span> <span class="s">&quot;but&quot;</span><span class="p">,</span> <span class="s">&quot;his&quot;</span><span class="p">,</span> <span class="s">&quot;by&quot;</span><span class="p">,</span> <span class="s">&quot;from&quot;</span><span class="p">,</span> <span class="s">&quot;they&quot;</span><span class="p">,</span> <span class="s">&quot;we&quot;</span><span class="p">,</span> <span class="s">&quot;say&quot;</span><span class="p">,</span> <span class="s">&quot;her&quot;</span><span class="p">,</span> <span class="s">&quot;she&quot;</span><span class="p">,</span> <span class="s">&quot;or&quot;</span><span class="p">,</span>
+             <span class="s">&quot;an&quot;</span><span class="p">,</span> <span class="s">&quot;will&quot;</span><span class="p">,</span> <span class="s">&quot;my&quot;</span><span class="p">,</span> <span class="s">&quot;one&quot;</span><span class="p">,</span> <span class="s">&quot;all&quot;</span><span class="p">,</span> <span class="s">&quot;would&quot;</span><span class="p">,</span> <span class="s">&quot;there&quot;</span><span class="p">,</span> <span class="s">&quot;their&quot;</span><span class="p">,</span> <span class="s">&quot;what&quot;</span><span class="p">,</span> <span class="s">&quot;so&quot;</span><span class="p">,</span> <span class="s">&quot;up&quot;</span><span class="p">,</span> <span class="s">&quot;out&quot;</span><span class="p">,</span> <span class="s">&quot;if&quot;</span><span class="p">,</span> <span class="s">&quot;about&quot;</span><span class="p">,</span>
+             <span class="s">&quot;who&quot;</span><span class="p">,</span> <span class="s">&quot;get&quot;</span><span class="p">,</span> <span class="s">&quot;which&quot;</span><span class="p">,</span> <span class="s">&quot;go&quot;</span><span class="p">,</span> <span class="s">&quot;me&quot;</span><span class="p">,</span> <span class="s">&quot;when&quot;</span><span class="p">,</span> <span class="s">&quot;make&quot;</span><span class="p">,</span> <span class="s">&quot;can&quot;</span><span class="p">,</span> <span class="s">&quot;time&quot;</span><span class="p">,</span> <span class="s">&quot;no&quot;</span><span class="p">,</span> <span class="s">&quot;just&quot;</span><span class="p">,</span> <span class="s">&quot;him&quot;</span><span class="p">,</span> <span class="s">&quot;know&quot;</span><span class="p">,</span> <span class="s">&quot;take&quot;</span><span class="p">,</span>
+             <span class="s">&quot;people&quot;</span><span class="p">,</span> <span class="s">&quot;into&quot;</span><span class="p">,</span> <span class="s">&quot;year&quot;</span><span class="p">,</span> <span class="s">&quot;your&quot;</span><span class="p">,</span> <span class="s">&quot;could&quot;</span><span class="p">,</span> <span class="s">&quot;them&quot;</span><span class="p">,</span> <span class="s">&quot;see&quot;</span><span class="p">,</span> <span class="s">&quot;other&quot;</span><span class="p">,</span> <span class="s">&quot;than&quot;</span><span class="p">,</span> <span class="s">&quot;then&quot;</span><span class="p">,</span> <span class="s">&quot;now&quot;</span><span class="p">,</span> <span class="s">&quot;look&quot;</span><span class="p">,</span>
+             <span class="s">&quot;only&quot;</span><span class="p">,</span> <span class="s">&quot;come&quot;</span><span class="p">,</span> <span class="s">&quot;its&quot;</span><span class="p">,</span> <span class="s">&quot;over&quot;</span><span class="p">,</span> <span class="s">&quot;think&quot;</span><span class="p">,</span> <span class="s">&quot;also&quot;</span><span class="p">,</span> <span class="s">&quot;back&quot;</span><span class="p">,</span> <span class="s">&quot;after&quot;</span><span class="p">,</span> <span class="s">&quot;use&quot;</span><span class="p">,</span> <span class="s">&quot;two&quot;</span><span class="p">,</span> <span class="s">&quot;how&quot;</span><span class="p">,</span> <span class="s">&quot;our&quot;</span><span class="p">,</span> <span class="s">&quot;first&quot;</span><span class="p">,</span> <span class="s">&quot;am&quot;</span><span class="p">,</span>
+             <span class="s">&quot;way&quot;</span><span class="p">,</span> <span class="s">&quot;even&quot;</span><span class="p">,</span> <span class="s">&quot;because&quot;</span><span class="p">,</span> <span class="s">&quot;any&quot;</span><span class="p">,</span> <span class="s">&quot;these&quot;</span><span class="p">,</span> <span class="s">&quot;day&quot;</span><span class="p">,</span> <span class="s">&quot;most&quot;</span><span class="p">,</span> <span class="s">&quot;us&quot;</span><span class="p">,</span> <span class="s">&quot;got&quot;</span><span class="p">,</span> <span class="s">&quot;is&quot;</span><span class="p">,</span> <span class="s">&quot;are&quot;</span><span class="p">,</span> <span class="s">&quot;i&#39;m&quot;</span><span class="p">,</span> <span class="s">&quot;im&quot;</span><span class="p">,</span>
+             <span class="s">&quot;here&quot;</span><span class="p">,</span> <span class="s">&quot;it&#39;s&quot;</span><span class="p">,</span> <span class="s">&quot;had&quot;</span><span class="p">,</span> <span class="s">&quot;was&quot;</span><span class="p">,</span> <span class="s">&quot;while&quot;</span><span class="p">,</span> <span class="s">&quot;we&#39;re&quot;</span><span class="p">)</span>
+
+
+
+<span class="k">def</span> <span class="nf">lex</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">rules</span><span class="o">=</span><span class="n">lexrules</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;lexer that returns only the recognized tokens&quot;&quot;&quot;</span>
+    <span class="c">#remove &amp;quot; and other html stuff</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">HTMLParser</span><span class="p">()</span><span class="o">.</span><span class="n">unescape</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="n">regexp</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&quot;|&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&quot;(?P&lt;</span><span class="si">%s</span><span class="s">&gt;</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">rules</span><span class="p">]),</span> <span class="n">re</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="o">|</span> <span class="n">re</span><span class="o">.</span><span class="n">UNICODE</span><span class="p">)</span>
+    <span class="n">tokens</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">match</span> <span class="ow">in</span> <span class="n">regexp</span><span class="o">.</span><span class="n">finditer</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">rules</span><span class="p">:</span>
+            <span class="n">tok</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">tok</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">func</span><span class="p">:</span>
+                    <span class="n">tok</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">tok</span><span class="p">)</span>
+                <span class="c">#eliminate stopwords</span>
+                <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s">&#39;WORD&#39;</span> <span class="ow">and</span> <span class="n">tok</span> <span class="ow">in</span> <span class="n">stopwords</span><span class="p">:</span>
+                    <span class="k">break</span>
+                <span class="n">tokens</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">name</span><span class="p">,</span> <span class="n">tok</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">tokens</span>
+
+<span class="n">test_batch</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="p">(</span><span class="s">&#39;positive&#39;</span><span class="p">,</span> <span class="s">&#39;excited&#39;</span><span class="p">,</span>
+<span class="s">u&quot;@stellargirl I loooooooovvvvvveee my #Kindle2. Not that the DX is cool, but the 2 is fantastic in its own right.&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;negative&#39;</span><span class="p">,</span> <span class="s">&#39;excited&#39;</span><span class="p">,</span>
+<span class="s">u&quot;is upset that he can&#39;t update his Facebook by texting it... and might cry </span><span class="se">\a</span><span class="s">s a result School today also. Blah!&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;positive&#39;</span><span class="p">,</span> <span class="s">&#39;excited&#39;</span><span class="p">,</span>
+<span class="s">u&quot;im meeting up with one of my besties tonight! &amp;lt;3 Cant wait!!  - GIRL TALK&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;positive&#39;</span><span class="p">,</span> <span class="s">&#39;excited&#39;</span><span class="p">,</span>
+<span class="s">u&quot;I am so jealous, hope you had a great time in vegas! how did you like the ACM&#39;s?! ♡♡ LOVE YOUR SHOW!!&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;negative&#39;</span><span class="p">,</span> <span class="s">&#39;excited&#39;</span><span class="p">,</span>
+<span class="s">u&quot;NOOOOOOO my DVR just died and I was only half way through the EA presser. Hate you Time Warner #FML&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;negative&#39;</span><span class="p">,</span> <span class="s">&#39;excited&#39;</span><span class="p">,</span>
+<span class="s">u&quot;F*ck Time Warner Cable!!! You f*cking suck balls!!! I have a $700 HD tv &amp;amp; my damn HD channels hardly ever come in. Bullshit!!&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;positive&#39;</span><span class="p">,</span> <span class="s">&#39;excited&#39;</span><span class="p">,</span>
+<span class="s">u&quot;at James house eatin nice and delicious food :) http://dummylink.com&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;positive&#39;</span><span class="p">,</span> <span class="s">&#39;excited&#39;</span><span class="p">,</span>
+<span class="s">u&quot;today is my Happy day coz, im goin to BaLi !  it sounds exciting!&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;negative&#39;</span><span class="p">,</span> <span class="s">&#39;subdued&#39;</span><span class="p">,</span>
+<span class="s">u&quot;yup, my cat is still stranded  she&#39;s just sitting on the table, sleeping, waiting for the rain to pass&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;negative&#39;</span><span class="p">,</span> <span class="s">&#39;subdued&#39;</span><span class="p">,</span>
+<span class="s">u&quot;Aside from the apps store disparity, I see little reason to pick a current iPhone over Pre. We&#39;ll see after tmrw though&quot;</span><span class="p">)</span>
+<span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">get_tokens</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;return a list of only the WORD and EMOTICON-type tokens&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">token</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">lex</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&#39;WORD&#39;</span><span class="p">,</span> <span class="s">&#39;EMOTICON&#39;</span><span class="p">)]</span>
+
+
+<span class="k">def</span> <span class="nf">get_all_tokens</span><span class="p">(</span><span class="n">batch</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;return a flat list of WORD and EMOTICON tokens for a labeled batch&quot;&quot;&quot;</span>
+    <span class="n">tokens</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">v</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">text</span> <span class="ow">in</span> <span class="n">batch</span><span class="p">:</span>
+        <span class="n">tokens</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">get_tokens</span><span class="p">(</span><span class="n">text</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">tokens</span>
+
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;traindata.csv&#39;</span><span class="p">,</span> <span class="s">&#39;rU&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">csvfile</span><span class="p">:</span>
+    <span class="n">reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">csvfile</span><span class="p">,</span> <span class="n">dialect</span><span class="o">=</span><span class="s">&#39;excel&#39;</span><span class="p">,)</span>
+    <span class="nb">next</span><span class="p">(</span><span class="n">reader</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>  <span class="c"># skip header</span>
+    <span class="n">training_batch</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">v</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">text</span> <span class="ow">in</span> <span class="n">reader</span><span class="p">:</span>
+        <span class="n">training_batch</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">v</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="nb">unicode</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="s">&quot;utf-8&quot;</span><span class="p">)))</span>
+
+
+<span class="n">frequency_dist</span> <span class="o">=</span> <span class="n">nltk</span><span class="o">.</span><span class="n">FreqDist</span><span class="p">(</span><span class="n">get_all_tokens</span><span class="p">(</span><span class="n">training_batch</span><span class="p">))</span>
+
+<span class="k">def</span> <span class="nf">extract_features</span><span class="p">(</span><span class="n">tokens</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;match the frequency distribution to a list of tokens&quot;&quot;&quot;</span>
+    <span class="n">tokens</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">tok</span> <span class="ow">in</span> <span class="n">frequency_dist</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">features</span><span class="p">[</span><span class="s">&#39;contains(</span><span class="si">%s</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="n">tok</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">tok</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">features</span>
+
+
+<span class="k">def</span> <span class="nf">label_features</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;return a list of features + label for a given label</span>
+<span class="sd">    0 for valence, 1 for arousal&quot;&quot;&quot;</span>
+    <span class="n">labellist</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">batch</span><span class="p">:</span>
+        <span class="n">labellist</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">get_tokens</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span> <span class="n">row</span><span class="p">[</span><span class="n">label</span><span class="p">]))</span>
+    <span class="k">return</span> <span class="n">labellist</span>
+
+
+<span class="n">valence_training_set</span> <span class="o">=</span> <span class="n">nltk</span><span class="o">.</span><span class="n">classify</span><span class="o">.</span><span class="n">apply_features</span><span class="p">(</span><span class="n">extract_features</span><span class="p">,</span> <span class="n">label_features</span><span class="p">(</span><span class="n">training_batch</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+<span class="n">arousal_training_set</span> <span class="o">=</span> <span class="n">nltk</span><span class="o">.</span><span class="n">classify</span><span class="o">.</span><span class="n">apply_features</span><span class="p">(</span><span class="n">extract_features</span><span class="p">,</span> <span class="n">label_features</span><span class="p">(</span><span class="n">training_batch</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
+<span class="n">valence_test_set</span> <span class="o">=</span> <span class="n">nltk</span><span class="o">.</span><span class="n">classify</span><span class="o">.</span><span class="n">apply_features</span><span class="p">(</span><span class="n">extract_features</span><span class="p">,</span> <span class="n">label_features</span><span class="p">(</span><span class="n">test_batch</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+<span class="n">arousal_test_set</span> <span class="o">=</span> <span class="n">nltk</span><span class="o">.</span><span class="n">classify</span><span class="o">.</span><span class="n">apply_features</span><span class="p">(</span><span class="n">extract_features</span><span class="p">,</span> <span class="n">label_features</span><span class="p">(</span><span class="n">test_batch</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
+<span class="n">valence_classifier</span> <span class="o">=</span> <span class="n">nltk</span><span class="o">.</span><span class="n">NaiveBayesClassifier</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">valence_training_set</span><span class="p">)</span>
+<span class="n">arousal_classifier</span> <span class="o">=</span> <span class="n">nltk</span><span class="o">.</span><span class="n">NaiveBayesClassifier</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">arousal_training_set</span><span class="p">)</span>
+
+
+
+
+
+<span class="k">if</span> <span class="n">__name__</span><span class="o">==</span><span class="s">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;DEMONSTRATION OF THE LEXER ON THE FIRST 3 TEST TWEETS:</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">v</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">text</span> <span class="ow">in</span> <span class="n">test_batch</span><span class="p">[:</span><span class="mi">3</span><span class="p">]:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;= &quot;</span><span class="o">*</span><span class="mi">40</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;- &quot;</span><span class="o">*</span><span class="mi">40</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">lex</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">: </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">token</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">token</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n\n</span><span class="s">MOST INFORMATIVE FEATURES, VALENCE + AROUSAL:&quot;</span><span class="p">)</span>
+    <span class="n">valence_classifier</span><span class="o">.</span><span class="n">show_most_informative_features</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+    <span class="n">arousal_classifier</span><span class="o">.</span><span class="n">show_most_informative_features</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n\n</span><span class="s">ACCURACY SCORE ON TEST SET:&quot;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;Valence accuracy: </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="n">nltk</span><span class="o">.</span><span class="n">classify</span><span class="o">.</span><span class="n">accuracy</span><span class="p">(</span><span class="n">valence_classifier</span><span class="p">,</span> <span class="n">valence_test_set</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;Arousal accuracy: </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="n">nltk</span><span class="o">.</span><span class="n">classify</span><span class="o">.</span><span class="n">accuracy</span><span class="p">(</span><span class="n">arousal_classifier</span><span class="p">,</span> <span class="n">arousal_test_set</span><span class="p">)</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n\n</span><span class="s">DEMONSTRATION OF THE CLASSIFIER ON THE FIRST 3 TEST TWEETS:</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">v</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">text</span> <span class="ow">in</span> <span class="n">test_batch</span><span class="p">[:</span><span class="mi">3</span><span class="p">]:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;= &quot;</span><span class="o">*</span><span class="mi">40</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;valence: </span><span class="si">%s</span><span class="s"> | classifier: </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">valence_classifier</span><span class="o">.</span><span class="n">classify</span><span class="p">(</span><span class="n">extract_features</span><span class="p">(</span><span class="n">get_tokens</span><span class="p">(</span><span class="n">text</span><span class="p">))))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;arousal: </span><span class="si">%s</span><span class="s"> | classifier: </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">arousal_classifier</span><span class="o">.</span><span class="n">classify</span><span class="p">(</span><span class="n">extract_features</span><span class="p">(</span><span class="n">get_tokens</span><span class="p">(</span><span class="n">text</span><span class="p">))))</span>
+
+
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n\n</span><span class="s">MOVIE REVIEWS:</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
+</pre></div>
+
+
+<table>
+<thead>
+<tr>
+<th>Movies</th>
+<th>positive</th>
+<th>excited</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>watched #12YearsASlave</td>
+<td>72%</td>
+<td>84%</td>
+</tr>
+<tr>
+<td>watched #DallasBuyersClub</td>
+<td>85%</td>
+<td>79%</td>
+</tr>
+<tr>
+<td>watched #Nebraska</td>
+<td>93%</td>
+<td>86%</td>
+</tr>
+<tr>
+<td>paint dry</td>
+<td>35%</td>
+<td>8%</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Dream jobs</th>
+<th>positive</th>
+<th>excited</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>politician</td>
+<td>23%</td>
+<td>78%</td>
+</tr>
+<tr>
+<td>president</td>
+<td>76%</td>
+<td>45%</td>
+</tr>
+<tr>
+<td>doctor</td>
+<td>62%</td>
+<td>54%</td>
+</tr>
+<tr>
+<td>nurse</td>
+<td>71%</td>
+<td>73%</td>
+</tr>
+<tr>
+<td>dentist</td>
+<td>29%</td>
+<td>75%</td>
+</tr>
+<tr>
+<td>teacher</td>
+<td>63%</td>
+<td>69%</td>
+</tr>
+<tr>
+<td>waitress</td>
+<td>43%</td>
+<td>66%</td>
+</tr>
+<tr>
+<td>stewardess</td>
+<td>77%</td>
+<td>77%</td>
+</tr>
+<tr>
+<td>pilot</td>
+<td>40%</td>
+<td>71%</td>
+</tr>
+<tr>
+<td>fireman</td>
+<td>59%</td>
+<td>58%</td>
+</tr>
+<tr>
+<td>policeman</td>
+<td>74%</td>
+<td>65%</td>
+</tr>
+<tr>
+<td>writer</td>
+<td>53%</td>
+<td>49%</td>
+</tr>
+<tr>
+<td>journalist</td>
+<td>55%</td>
+<td>70%</td>
+</tr>
+<tr>
+<td>artist</td>
+<td>65%</td>
+<td>72%</td>
+</tr>
+<tr>
+<td>singer</td>
+<td>89%</td>
+<td>79%</td>
+</tr>
+<tr>
+<td>actor</td>
+<td>87%</td>
+<td>38%</td>
+</tr>
+<tr>
+<td>pornstar</td>
+<td>69%</td>
+<td>85%</td>
+</tr>
+<tr>
+<td>athlete</td>
+<td>64%</td>
+<td>65%</td>
+</tr>
+<tr>
+<td>cashier</td>
+<td>57%</td>
+<td>68%</td>
+</tr>
+<tr>
+<td>programmer</td>
+<td>54%</td>
+<td>54%</td>
+</tr>
+<tr>
+<td>web developer</td>
+<td>88%</td>
+<td>16%</td>
+</tr>
+</tbody>
+</table>
+<div class="codehilite"><pre>    <span class="kn">from</span> <span class="nn">TwitterSearch</span> <span class="kn">import</span> <span class="o">*</span>
+
+    <span class="c">#twitter api credentials hidden in separate file for obvious reasons</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;twitterapi.txt&#39;</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">consumer_key</span><span class="p">,</span> <span class="n">consumer_secret</span><span class="p">,</span> <span class="n">access_key</span><span class="p">,</span> <span class="n">access_secret</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+
+    <span class="n">review_limit</span> <span class="o">=</span> <span class="mi">100</span>
+
+    <span class="n">subjects</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">[</span><span class="s">&#39;apples&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s">&#39;oranges&#39;</span><span class="p">]</span>
+    <span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">keywords</span> <span class="ow">in</span> <span class="n">subjects</span><span class="p">:</span>
+        <span class="n">positive_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">excited_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">review_count</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">tso</span> <span class="o">=</span> <span class="n">TwitterSearchOrder</span><span class="p">()</span> <span class="c"># create a TwitterSearchOrder object</span>
+            <span class="n">tso</span><span class="o">.</span><span class="n">setKeywords</span><span class="p">(</span><span class="n">keywords</span><span class="p">)</span>
+            <span class="n">tso</span><span class="o">.</span><span class="n">setLanguage</span><span class="p">(</span><span class="s">&#39;en&#39;</span><span class="p">)</span>
+            <span class="n">tso</span><span class="o">.</span><span class="n">setCount</span><span class="p">(</span><span class="n">review_limit</span><span class="p">)</span> <span class="c"># 15 results per page</span>
+            <span class="n">tso</span><span class="o">.</span><span class="n">setIncludeEntities</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+
+            <span class="n">ts</span> <span class="o">=</span> <span class="n">TwitterSearch</span><span class="p">(</span><span class="n">consumer_key</span><span class="p">,</span> <span class="n">consumer_secret</span><span class="p">,</span> <span class="n">access_key</span><span class="p">,</span> <span class="n">access_secret</span><span class="p">)</span>
+
+            <span class="n">response</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">searchTweets</span><span class="p">(</span><span class="n">tso</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">status</span> <span class="ow">in</span> <span class="n">response</span><span class="p">[</span><span class="s">&#39;content&#39;</span><span class="p">][</span><span class="s">&#39;statuses&#39;</span><span class="p">]:</span>
+                <span class="n">review_count</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">valence_classifier</span><span class="o">.</span><span class="n">classify</span><span class="p">(</span><span class="n">extract_features</span><span class="p">(</span><span class="n">get_tokens</span><span class="p">(</span><span class="n">status</span><span class="p">[</span><span class="s">&#39;text&#39;</span><span class="p">])))</span> <span class="o">==</span> <span class="s">&#39;positive&#39;</span><span class="p">:</span>
+                    <span class="n">positive_count</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">arousal_classifier</span><span class="o">.</span><span class="n">classify</span><span class="p">(</span><span class="n">extract_features</span><span class="p">(</span><span class="n">get_tokens</span><span class="p">(</span><span class="n">status</span><span class="p">[</span><span class="s">&#39;text&#39;</span><span class="p">])))</span> <span class="o">==</span> <span class="s">&#39;excited&#39;</span><span class="p">:</span>
+                    <span class="n">excited_count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="k">print</span><span class="p">(</span><span class="n">keywords</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">review_count</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;positive: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">((</span><span class="n">positive_count</span><span class="o">*</span><span class="mf">100.0</span><span class="p">)</span><span class="o">/</span><span class="n">review_count</span><span class="p">))</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;excited: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">((</span><span class="n">excited_count</span><span class="o">*</span><span class="mf">100.0</span><span class="p">)</span><span class="o">/</span><span class="n">review_count</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;no results, try another search entry&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">TwitterSearchException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+</pre></div>
+
+
+<h3>References</h3>
+<ul>
+<li><a href="http://www.gooli.org/blog/a-simple-lexer-in-python/">A simple lexer in Python,  Eli Golovinsky</a></li>
+<li><a href="http://www.laurentluce.com/posts/twitter-sentiment-analysis-using-python-and-nltk/">Twitter sentiment analysis using Python and NLTK, Laurent Luce</a></li>
+<li><a href="http://www.nltk.org/book/ch06.html">Natural Language Processing with Python, chapter 6: Learning to classify text</a></li>
+<li><a href="http://sentiment.christopherpotts.net/tokenizing.html">Sentiment Symposium Tutorial: Tokenizing, Christopher Potts</a></li>
+<li><a href="http://eprints.eemcs.utwente.nl/23268/01/sac13-senticon.pdf">Exploiting Emoticons in Sentiment Analysis, Alexander Hogenboom et al.</a></li>
+<li><a href="http://alexdavies.net/twitter-sentiment-analysis/">Alex Davies' website</a></li>
+<li><a href="http://oldsite.aclweb.org/anthology-new/C/C10/C10-2028.pdf">Enhanced Sentiment Learning Using Twitter Hashtags and Smileys, Dmitry Davidov et al.</a></li>
+<li><a href="http://www.csc.ncsu.edu/faculty/healey/tweet_viz/">Visualizing twitter sentiment, Healey &amp; Ramaswamy</a></li>
+<li><a href="http://sydney.edu.au/engineering/latte/docs/11-Kim-Master_Thesis_Final.pdf">Recognising Emotions and Sentiments in Text, Sunghwan Mac Kim</a></li>
+</ul>
+  </section>
+  <section>
+    <!--DISQUS code-->
+    <div id="disqus_container">
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'snirp-eternal'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+    </div>
+  </section>
+</article>
+
+</main>
+</body>
+</html>

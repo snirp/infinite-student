@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+  <meta charset=utf-8>
+  <title>Infinite student</title>
+  <meta name="description" content="My everlasting quest to improve my programming skills." />
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="keywords" lang="en" content="python, programming, learn, blog, study">
+
+  <link rel='author' href='https://plus.google.com/+RoyPrins_page?rel=author'>
+  <link rel='shortcut icon' type='image/png' href="snirp.github.io/infinite-student/static/images/favicon.png">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <!-- my custom stylesheet -->
+  <link rel="stylesheet" href="snirp.github.io/infinite-student/style.css">
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery.touchswipe/1.6.4/jquery.touchSwipe.min.js"></script>
+  <script src="snirp.github.io/infinite-student/static/js/custom_scripts.js" type='text/javascript'></script>
+  <!--[if lte IE 9]>
+    <script src="snirp.github.io/infinite-student/static/js/html5shiv.js"></script>
+  <![endif]-->
+  <script id='code_1'>
+    $(function() {
+      $("body").swipe( {
+        //Trigger CSS transitions by toggling classes on right / left swipes
+        swipeRight:function(event, direction, distance, duration, fingerCount) {
+          $("nav").addClass("swiped-right");
+          $("main").addClass("swiped-right");
+        },
+        swipeLeft:function(event, direction, distance, duration, fingerCount) {
+          $("nav").removeClass("swiped-right");
+          $("main").removeClass("swiped-right");
+        }
+      });
+    });
+    </script>
+
+
+</head>
+<body id="page-project">
+
+<a id="navbutton">∞</a>
+
+<nav>
+  <h2>the infinite student</h2>
+  <ul id="mainnav">
+    <li class="page-home"><a href="snirp.github.io/infinite-student/">Home</a></li>
+    <li class="page-python"><a href="snirp.github.io/infinite-student/python.html">Python projects</a></li>
+    <li class="page-javascript"><a href="">Javascript projects</a></li>
+    <li class="page-contact"><a href="">Contact</a></li>
+  </ul>
+
+  <ul id="customnav">
+    
+    <li><a href=""><i class="fa fa-rss"></i> Atom feed</a></li>
+     
+  </ul>
+
+</nav>
+
+<main>
+
+
+<article>
+  <a href="snirp.github.io/infinite-student/python/semilit.html">
+    <h2>Static site generator for SLiP (Semi-Literate Programming) files</h2>
+    <p>A Flask based Static Site Generator that powers the Infinite Student website.
+</p>
+  </a>
+</article>
+
+<article>
+  <a href="snirp.github.io/infinite-student/python/tictactoe.html">
+    <h2>AI for playing Tic-Tac-Toe</h2>
+    <p>An exploration of several algorithms to play a game of Tic-Tac-Toe against a human opponent. Notably the Negamax algorithm is used.
+</p>
+  </a>
+</article>
+
+<article>
+  <a href="snirp.github.io/infinite-student/python/twitter_tokenizer.html">
+    <h2>Twitter tokenizer and sentiment analysis</h2>
+    <p>Tokenizing tweets.
+</p>
+  </a>
+</article>
+
+
+</main>
+</body>
+</html>

@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+  <meta charset=utf-8>
+  <title>Static site generator for SLiP (Semi-Literate Programming) files</title>
+  <meta name="description" content="My everlasting quest to improve my programming skills." />
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="keywords" lang="en" content="python, programming, learn, blog, study">
+
+  <link rel='author' href='https://plus.google.com/+RoyPrins_page?rel=author'>
+  <link rel='shortcut icon' type='image/png' href="snirp.github.io/infinite-student/static/images/favicon.png">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <!-- my custom stylesheet -->
+  <link rel="stylesheet" href="snirp.github.io/infinite-student/style.css">
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery.touchswipe/1.6.4/jquery.touchSwipe.min.js"></script>
+  <script src="snirp.github.io/infinite-student/static/js/custom_scripts.js" type='text/javascript'></script>
+  <!--[if lte IE 9]>
+    <script src="snirp.github.io/infinite-student/static/js/html5shiv.js"></script>
+  <![endif]-->
+  <script id='code_1'>
+    $(function() {
+      $("body").swipe( {
+        //Trigger CSS transitions by toggling classes on right / left swipes
+        swipeRight:function(event, direction, distance, duration, fingerCount) {
+          $("nav").addClass("swiped-right");
+          $("main").addClass("swiped-right");
+        },
+        swipeLeft:function(event, direction, distance, duration, fingerCount) {
+          $("nav").removeClass("swiped-right");
+          $("main").removeClass("swiped-right");
+        }
+      });
+    });
+    </script>
+
+
+</head>
+<body id="page-python">
+
+<a id="navbutton">∞</a>
+
+<nav>
+  <h2>the infinite student</h2>
+  <ul id="mainnav">
+    <li class="page-home"><a href="snirp.github.io/infinite-student/">Home</a></li>
+    <li class="page-python"><a href="snirp.github.io/infinite-student/python.html">Python projects</a></li>
+    <li class="page-javascript"><a href="">Javascript projects</a></li>
+    <li class="page-contact"><a href="">Contact</a></li>
+  </ul>
+
+  <ul id="customnav">
+    
+  
+    <li><a href=""><i class="fa fa-rss"></i> Atom feed</a></li>
+     
+  <li>
+    <a href="https://github.com/snirp/infinite-student/blob/master/python/semilit.py"><i class="fa fa-github"></i> This project on github</a>
+  </li>
+
+  </ul>
+
+</nav>
+
+<main>
+
+<article>
+  <section>
+    <h3>The goal</h3>
+<p>This is the project that powers the Infinite Student website. I set myself the following goals:</p>
+<ul>
+<li>Minimal overhead in making new projects or listing ideas;</li>
+<li>Extendable to multiple languages;</li>
+<li>Easy hosting and git-based workflow;</li>
+<li>Force myself to do extensive documentation.</li>
+</ul>
+<p>Meanwhile I am well aware that this will not fit all the projects I have in mind. The idea is to
+use it to envision, publish and keep developing simple single-file projects. By myself or even
+with a collaborator. Anything with a bigger scope will find a home outside the Infinite Student project.</p>
+<p>Here is what I came up with:</p>
+<h4>- code as flat-pages</h4>
+<p>The code files are published directly to the web. Some meta data is attached to the header to categorize
+them and provide additional information such as status, date, tags etc. For every project there is just
+one file, which is also the working code. The overhead couldn't be less.</p>
+<p>For every language there is separate folder. For now, there is a <code>python</code> and a <code>javascript</code> folder, but
+who knows I will get to do <code>haskell</code> one day.</p>
+<h4>- github pages</h4>
+<p>Proper source control management is keeping me sane and Github is doing a nice job hosting
+<a href="https://github.com/snirp/infinite-student">this repository</a>. The thing that sets Github apart is the
+ability to host static files, so I can use one environment for version control and hosting.</p>
+<h4>- semiliterate programming</h4>
+<p>Semiliterate programming can be seen as the common ground between "literate programming" and the more
+conventional appoaches.</p>
+<blockquote>
+<p>Literate programming is an approach to programming introduced by Donald Knuth in which a program is
+given as an explanation of the program logic in a natural language, such as English, interspersed with
+snippets of macros and traditional source code, from which a compilable source code can be generated.</p>
+</blockquote>
+<p>This project and the other projects on infinite student deviate from literate programming in the sense
+that natural language is not leading. While I fancy the idea, it does not work too well with the
+convetional programming skills I am trying to attain. The projects are rather conventional files
+interspersed with extensive documentation and elaboration with additional formatting. For this purpose,
+special multiline comment blocks are used, which are marked by <code>&lt;</code> and <code>&gt;</code>.</p>
+<p>When the interpreter reads the file, these blocks for meta-data and documentation are treated as any
+other comment. When the web application parses the code files, the documentation is rendered as Markdown
+and the code as Markdown code blocks with highlighting. The first documentation block is parsed as YAML
+meta-data about the project.</p>
+<h3>Flask and static sites</h3>
+<p>This sets the bar for our web application. It should:</p>
+<ul>
+<li>Deal with multiple folders with code files, one for every language;</li>
+<li>Parse the code files into a metadate and a formatted webpage;</li>
+<li>Use the meta-data to make the pages accessible.</li>
+<li>Provide the additional pages and templates, such as the landing page.</li>
+</ul>
+<p>The Flask webframework is the perfect Python solution to doing this within the bounds of a single file.
+It can be used to serve the pages dynamically (with caching), or statically after 'freezing' them with
+Frozen Flask.</p>
+<p>This amounts to building a custom 'static site generator'. Many projects exist that attempt to do the
+same, but these lack the flexibilty needed to adapt to my use case. Using Flask gives me much more power
+and flexibilty. Moreover, building a static site generator is pretty trivial if you use Frozen Flask.</p>
+<div class="codehilite"><pre><span class="kn">import</span> <span class="nn">io</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">yaml</span>
+<span class="kn">import</span> <span class="nn">markdown</span> <span class="kn">as</span> <span class="nn">markdown_module</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">werkzeug</span>
+<span class="kn">import</span> <span class="nn">pygments.formatters</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span><span class="p">,</span> <span class="n">Markup</span><span class="p">,</span> <span class="n">render_template</span><span class="p">,</span> <span class="n">abort</span><span class="p">,</span> <span class="n">render_template_string</span><span class="p">,</span> <span class="n">url_for</span>
+<span class="kn">from</span> <span class="nn">flask_frozen</span> <span class="kn">import</span> <span class="n">Freezer</span>
+
+<span class="c">### initialization ###</span>
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+<span class="c">### configuration ###</span>
+<span class="n">PYGMENTS_CSS</span> <span class="o">=</span> <span class="p">(</span><span class="n">pygments</span><span class="o">.</span><span class="n">formatters</span><span class="o">.</span><span class="n">HtmlFormatter</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="s">&#39;trac&#39;</span><span class="p">)</span>
+                <span class="o">.</span><span class="n">get_style_defs</span><span class="p">(</span><span class="s">&#39;.codehilite&#39;</span><span class="p">))</span>
+
+<span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">&#39;FREEZER_DESTINATION&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;gh-pages&#39;</span>
+<span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">&#39;FREEZER_DESTINATION_IGNORE&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;.git*&#39;</span><span class="p">,</span> <span class="s">&#39;CNAME&#39;</span><span class="p">,</span> <span class="s">&#39;.gitignore&#39;</span><span class="p">,</span> <span class="s">&#39;readme.md&#39;</span><span class="p">]</span>
+<span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">&#39;FREEZER_RELATIVE_URLS&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">&#39;FREEZER_BASE_URL&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;TODO&#39;</span>  <span class="c"># TODO freezer uses this for _external=True URLs</span>
+
+<span class="n">freezer</span> <span class="o">=</span> <span class="n">Freezer</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+
+
+<span class="nd">@app.template_filter</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">markdown</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">extensions</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;codehilite(linenums=False)&#39;</span><span class="p">,</span> <span class="s">&#39;fenced_code&#39;</span><span class="p">,</span> <span class="s">&#39;tables&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">[</span><span class="s">&#39;downheader&#39;</span><span class="p">]):</span>
+    <span class="sd">&quot;&quot;&quot;render markdown to HTML, possibly using custom extensions&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">markdown_module</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">extensions</span><span class="p">)</span>
+</pre></div>
+
+
+<h3>Put it in the freezer</h3>
+<p>As we said, this is a normal Flask application and can be run and tested as such. By calling
+<code>freezer.freeze()</code>, the application will be frozen into the FREEZER_DESTINATION folder as a
+collection of static files.</p>
+<p>By creating a separate <code>gh-pages</code> branch in the git repository to track the static folder, github
+will serve the folder as a static website.</p>
+<h3>Deal with code files</h3>
+<p>For every programming language I am making projects in, there is an instance of the Pages class.
+For example: <code>python = Pages(flatdir='python', language='python', suffix='.py')</code>.</p>
+<p>The heavy work is done in the <code>get_page()</code> method. It parses the file in the fashion of a lexer
+to obtain the DOC and CODE sections or 'tokens'. The first DOC section forms the (YAML) head. The
+various other sections are processed (indentations, fenced code block) and reassembled as the
+(Markdown) body of the flatpage.</p>
+<p>Some language implementations dictate that the first line of a code file contains a 'shebang' or
+an encoding declaration (<code>#!</code> or <code>#</code>). To avoid having these before the first DOC block in the output,
+they are isolated and prepended before the first CODE block.</p>
+<p>The lexer works by matching regular expressions against the code file. This is generally not recommended,
+because programming languages are not 'regular' and of higher complexity. It can lead to undesireable
+results, but because this is a controlled environment I decided to go ahead with it.</p>
+<div class="codehilite"><pre><span class="c">### flatpage classes ###</span>
+<span class="k">class</span> <span class="nc">Pages</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Several distinct Pages . Caching is implemented for the properties and HTML content of the pages.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        _cache          Stores Page-instance and last-modified per flatpage filepath.</span>
+<span class="sd">        _languagemap    Provides suffix and multiline comment patterns per language.</span>
+
+<span class="sd">    Arguments (instance specific):</span>
+<span class="sd">        flatdir         Directory that holds the code files.</span>
+<span class="sd">        flatroot        Full path to the fladir directory</span>
+<span class="sd">        language        Name of the language.</span>
+<span class="sd">        suffix          Only files with matching suffix will be rendered.</span>
+<span class="sd">        start_pattern,</span>
+<span class="sd">        end_pattern     Everything inside these patterns will be treated as Markdown;</span>
+<span class="sd">                        the sections in between as (Markdown) code blocks.</span>
+<span class="sd">        chars           Number of characters of the patterns, used for some messy slicing.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_cache</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">_languagemap</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;python&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;suffix&#39;</span><span class="p">:</span> <span class="s">&#39;.py&#39;</span><span class="p">,</span> <span class="s">&#39;docstart&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="se">\&quot;</span><span class="s">{3}&lt;&#39;</span><span class="p">,</span> <span class="s">&#39;docend&#39;</span><span class="p">:</span> <span class="s">&#39;&gt;</span><span class="se">\&quot;</span><span class="s">{3}&#39;</span><span class="p">,</span> <span class="s">&#39;chars&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">},</span>
+        <span class="s">&#39;javascript&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;suffix&#39;</span><span class="p">:</span> <span class="s">&#39;.js&#39;</span><span class="p">,</span> <span class="s">&#39;docstart&#39;</span><span class="p">:</span> <span class="s">&#39;/\*&lt;&#39;</span><span class="p">,</span> <span class="s">&#39;docend&#39;</span><span class="p">:</span> <span class="s">&#39;&gt;\*/&#39;</span><span class="p">,</span> <span class="s">&#39;chars&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">},</span>
+        <span class="s">&#39;java&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;suffix&#39;</span><span class="p">:</span> <span class="s">&#39;.java&#39;</span><span class="p">,</span> <span class="s">&#39;docstart&#39;</span><span class="p">:</span> <span class="s">&#39;/\*&lt;&#39;</span><span class="p">,</span> <span class="s">&#39;docend&#39;</span><span class="p">:</span> <span class="s">&#39;&gt;\*/&#39;</span><span class="p">,</span> <span class="s">&#39;chars&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">},</span>
+        <span class="s">&#39;haskell&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;suffix&#39;</span><span class="p">:</span> <span class="s">&#39;.hs&#39;</span><span class="p">,</span> <span class="s">&#39;docstart&#39;</span><span class="p">:</span> <span class="s">&#39;{-&lt;&#39;</span><span class="p">,</span> <span class="s">&#39;docend&#39;</span><span class="p">:</span> <span class="s">&#39;&gt;-}&#39;</span><span class="p">,</span> <span class="s">&#39;chars&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flatdir</span><span class="o">=</span><span class="s">&#39;pages&#39;</span><span class="p">,</span> <span class="n">language</span><span class="o">=</span><span class="s">&#39;python&#39;</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flatdir</span> <span class="o">=</span> <span class="n">flatdir</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flatroot</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">root_path</span><span class="p">,</span> <span class="n">flatdir</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">language</span> <span class="o">=</span> <span class="n">language</span>
+        <span class="k">if</span> <span class="n">suffix</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">suffix</span> <span class="o">=</span> <span class="n">suffix</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">suffix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_languagemap</span><span class="p">[</span><span class="n">language</span><span class="p">][</span><span class="s">&#39;suffix&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_pattern</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_languagemap</span><span class="p">[</span><span class="n">language</span><span class="p">][</span><span class="s">&#39;docstart&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">end_pattern</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_languagemap</span><span class="p">[</span><span class="n">language</span><span class="p">][</span><span class="s">&#39;docend&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chars</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_languagemap</span><span class="p">[</span><span class="n">language</span><span class="p">][</span><span class="s">&#39;chars&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">all_pages</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Generator that yiels a Page instance for every flatfile&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">flatroot</span><span class="p">):</span>
+            <span class="n">abort</span><span class="p">(</span><span class="mi">404</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">flatroot</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">suffix</span><span class="p">):</span>
+                <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_page</span><span class="p">(</span><span class="n">filename</span><span class="p">[:</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">suffix</span><span class="p">)])</span>
+
+    <span class="k">def</span> <span class="nf">draft_pages</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;return only draft pages&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_pages</span><span class="p">()</span> <span class="k">if</span> <span class="n">p</span><span class="p">[</span><span class="s">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;draft&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">published_pages</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;return project pages, sorted by published date&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_pages</span><span class="p">()</span> <span class="k">if</span> <span class="n">p</span><span class="p">[</span><span class="s">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;project&#39;</span><span class="p">],</span>
+                      <span class="n">reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">p</span><span class="p">[</span><span class="s">&#39;published&#39;</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">lastmod_pages</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;sorts published pages by lastmod property&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">published_pages</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">lastmod</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">tagged_pages</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">published_pages</span><span class="p">()</span> <span class="k">if</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">p</span><span class="p">[</span><span class="s">&#39;tags&#39;</span><span class="p">]]</span>
+
+    <span class="k">def</span> <span class="nf">get_page</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a Page instance from cache or instantiate a new one if outdated or absent.</span>
+<span class="sd">        The file content is split in a (Markdown) body and (YAML) head section.</span>
+<span class="sd">        Update the cache with the new or updated Page instance.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">flatroot</span><span class="p">,</span> <span class="n">name</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">suffix</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
+            <span class="n">abort</span><span class="p">(</span><span class="mi">404</span><span class="p">)</span>
+        <span class="n">mtime</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getmtime</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+        <span class="n">page</span><span class="p">,</span> <span class="n">old_mtime</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">page</span> <span class="ow">or</span> <span class="n">mtime</span> <span class="o">!=</span> <span class="n">old_mtime</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">&#39;utf8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fd</span><span class="p">:</span>
+                <span class="n">filecontent</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+            <span class="c">#capture encoding header: find the first line not starting with &#39;#&#39;</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">filecontent</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;#&#39;</span><span class="p">):</span>
+                    <span class="k">break</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">encoding_section</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">filecontent</span><span class="p">[:</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">content_section</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">filecontent</span><span class="p">[</span><span class="n">i</span><span class="p">:])</span>
+
+            <span class="c">#lexer rules</span>
+            <span class="n">doc_pattern</span> <span class="o">=</span> <span class="s">&#39;(?=</span><span class="si">%s</span><span class="s">)(.*?)(?=</span><span class="si">%s</span><span class="s">)&#39;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start_pattern</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">end_pattern</span><span class="p">)</span>
+            <span class="n">code_pattern</span> <span class="o">=</span> <span class="s">&#39;(?=</span><span class="si">%s</span><span class="s">)(.+?)(?=</span><span class="si">%s</span><span class="s">)&#39;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">end_pattern</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_pattern</span><span class="p">)</span>
+            <span class="n">rules</span> <span class="o">=</span> <span class="p">((</span><span class="s">&quot;DOC&quot;</span><span class="p">,</span> <span class="n">doc_pattern</span><span class="p">),</span> <span class="p">(</span><span class="s">&quot;CODE&quot;</span><span class="p">,</span> <span class="n">code_pattern</span><span class="p">),)</span>
+            <span class="n">regexp</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&quot;|&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&quot;(?P&lt;</span><span class="si">%s</span><span class="s">&gt;</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">rules</span><span class="p">]),</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span> <span class="o">|</span> <span class="n">re</span><span class="o">.</span><span class="n">DOTALL</span> <span class="o">|</span> <span class="n">re</span><span class="o">.</span><span class="n">U</span><span class="p">)</span>
+
+            <span class="n">head</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+            <span class="n">body</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+            <span class="n">first_codeblock</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="n">first_docblock</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="k">for</span> <span class="n">match</span> <span class="ow">in</span> <span class="n">regexp</span><span class="o">.</span><span class="n">finditer</span><span class="p">(</span><span class="n">content_section</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">group</span><span class="p">,</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="n">rules</span><span class="p">:</span>
+                    <span class="n">tok</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="n">group</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">tok</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                        <span class="c">#trim doc divider</span>
+                        <span class="n">tok</span> <span class="o">=</span> <span class="n">tok</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">chars</span><span class="p">:]</span>
+                        <span class="c">#capture head block (YAML)</span>
+                        <span class="k">if</span> <span class="n">group</span> <span class="o">==</span> <span class="s">&#39;DOC&#39;</span> <span class="ow">and</span> <span class="n">first_docblock</span><span class="p">:</span>
+                            <span class="n">first_docblock</span> <span class="o">=</span> <span class="bp">False</span>
+                            <span class="n">head</span> <span class="o">=</span> <span class="n">tok</span>
+                            <span class="k">break</span>
+                        <span class="c">#skip empty code blocks</span>
+                        <span class="k">elif</span> <span class="n">group</span> <span class="o">==</span> <span class="s">&#39;CODE&#39;</span> <span class="ow">and</span> <span class="n">tok</span><span class="o">.</span><span class="n">isspace</span><span class="p">():</span>
+                            <span class="k">break</span>
+                        <span class="c">#prepend the encoding header to the first code block</span>
+                        <span class="k">elif</span> <span class="n">group</span> <span class="o">==</span> <span class="s">&#39;CODE&#39;</span> <span class="ow">and</span> <span class="n">first_codeblock</span><span class="p">:</span>
+                            <span class="n">first_codeblock</span> <span class="o">=</span> <span class="bp">False</span>
+                            <span class="n">tok</span> <span class="o">=</span> <span class="n">encoding_section</span> <span class="o">+</span> <span class="n">tok</span>
+                        <span class="c">#unindent the documentation sections</span>
+                        <span class="k">if</span> <span class="n">group</span> <span class="o">==</span> <span class="s">&quot;DOC&quot;</span><span class="p">:</span>
+                            <span class="n">tok</span> <span class="o">=</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">lstrip</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">tok</span><span class="o">.</span><span class="n">splitlines</span><span class="p">())</span>
+                        <span class="c">#create fenced code blocks with language declaration</span>
+                        <span class="k">elif</span> <span class="n">group</span> <span class="o">==</span> <span class="s">&quot;CODE&quot;</span><span class="p">:</span>
+                            <span class="n">tok</span> <span class="o">=</span> <span class="s">&quot;</span><span class="se">\n\n</span><span class="s">```</span><span class="se">\n</span><span class="s">:::</span><span class="si">%s</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="s">```</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">language</span><span class="p">,</span> <span class="n">tok</span><span class="p">)</span>
+                        <span class="n">body</span> <span class="o">+=</span> <span class="n">tok</span>
+            <span class="n">page</span> <span class="o">=</span> <span class="n">Page</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">head</span><span class="p">,</span> <span class="n">body</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">flatdir</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">[</span><span class="n">filepath</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">mtime</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">page</span>
+
+    <span class="k">def</span> <span class="nf">load_tags</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">tags</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">page</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_pages</span><span class="p">():</span>
+            <span class="n">tags</span> <span class="o">=</span> <span class="n">page</span><span class="p">[</span><span class="s">&#39;tags&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">tags</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">tags</span><span class="p">))</span>
+</pre></div>
+
+
+<h3>Caching</h3>
+<p>For every call to the <code>get_page()</code> method, the Page class is instantiated: a Page
+object exists for every code file. It is stored in a cache, together with the datestamp
+of the file. If <code>get_page()</code> is called again, a check is performed to see whether the
+file is still current. If the file is edited, the object in cache is replaced by creating
+a new instance of Page for the file.</p>
+<p>The caching is only relevant if the application is run dynamically: it is not relevant for
+the frozen/static website.</p>
+<h3>Rendering</h3>
+<p>The <code>html()</code> method does the heavy work of rendering the Markdown code to HTML. First we
+render any Jinja template tags so we can include images and such. Next the Markdown is
+rendered with several extensions:</p>
+<ul>
+<li>codehilite: Syntax highlighting</li>
+<li>fenced_code: Indicate code blocks by triple backticks (```)</li>
+<li>tables: Simple Markdown tables</li>
+<li>2 * downheader: Start with a lower HTML header tag (H3) inside the pages.</li>
+</ul>
+<div class="codehilite"><pre><span class="k">class</span> <span class="nc">Page</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Renders body to HTML and parse head to meta properties.</span>
+
+<span class="sd">    Arguments (instance specific):</span>
+<span class="sd">        name            Derived from filename of the flatfile.</span>
+<span class="sd">        head            String to be rendered as YAML to properties</span>
+<span class="sd">        body            String to be rendered as Markdown to HTML</span>
+<span class="sd">        flatdir         Used to match Page object to its url&#39;s</span>
+<span class="sd">        github_link     Location of the underlying file on Github</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">head</span><span class="p">,</span> <span class="n">body</span><span class="p">,</span> <span class="n">flatdir</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">head</span> <span class="o">=</span> <span class="n">head</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">body</span> <span class="o">=</span> <span class="n">body</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flatdir</span> <span class="o">=</span> <span class="n">flatdir</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">github_link</span> <span class="o">=</span> <span class="s">&quot;https://github.com/</span><span class="si">%s</span><span class="s">/</span><span class="si">%s</span><span class="s">/blob/master/</span><span class="si">%s</span><span class="s">/</span><span class="si">%s</span><span class="s">.py&quot;</span> <span class="o">%</span>\
+            <span class="p">(</span><span class="s">&#39;snirp&#39;</span><span class="p">,</span> <span class="s">&#39;infinite-student&#39;</span><span class="p">,</span> <span class="n">flatdir</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;getter to access the meta properties directly&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="nd">@werkzeug.cached_property</span>
+    <span class="k">def</span> <span class="nf">meta</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Render head section of file to meta properties.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">head</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+
+    <span class="nd">@werkzeug.cached_property</span>
+    <span class="k">def</span> <span class="nf">html</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Render Markdown and Jinja tags to HTML.&quot;&quot;&quot;</span>
+        <span class="n">html</span> <span class="o">=</span> <span class="n">render_template_string</span><span class="p">(</span><span class="n">Markup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">))</span>
+        <span class="n">html</span> <span class="o">=</span> <span class="n">markdown_module</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span><span class="n">html</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;codehilite(linenums=False)&#39;</span><span class="p">,</span> <span class="s">&#39;fenced_code&#39;</span><span class="p">,</span> <span class="s">&#39;tables&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="p">[</span><span class="s">&#39;downheader&#39;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">html</span>
+
+    <span class="k">def</span> <span class="nf">lastmod</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;updated&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="p">[</span><span class="s">&#39;published&#39;</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the url function for the detail page, based on convention of:</span>
+<span class="sd">        &lt;flatfile directory&gt;_detail&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">url_for</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">flatdir</span><span class="o">+</span><span class="s">&#39;_detail&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+<span class="c">### instantiate language class ###</span>
+<span class="n">python</span> <span class="o">=</span> <span class="n">Pages</span><span class="p">(</span><span class="n">flatdir</span><span class="o">=</span><span class="s">&#39;python&#39;</span><span class="p">,</span> <span class="n">language</span><span class="o">=</span><span class="s">&#39;python&#39;</span><span class="p">)</span>
+<span class="n">javascript</span> <span class="o">=</span> <span class="n">Pages</span><span class="p">(</span><span class="n">flatdir</span><span class="o">=</span><span class="s">&#39;javascript&#39;</span><span class="p">,</span> <span class="n">language</span><span class="o">=</span><span class="s">&#39;javascript&#39;</span><span class="p">)</span>
+</pre></div>
+
+
+<h3>Languages</h3>
+<p>Here we instantiate python and javascript as project languages. By setting the <code>language</code> argument,
+the Pages class can get the relevant settings for the language from the <code>_languagemap</code> (see Pages
+class). It tells us that python files have a ".py" suffix and that the multiline comments are defined
+by triple quotes.</p>
+<h3>Views</h3>
+<p>We can now use regular Flask view functions to generate pages for home, overview, detail and feeds.
+None of this should be new if you ever used Flask before; apart from setting an explicit route to
+<code>/404.html</code>. This is needed to make sure that Frozen Flask will generate a page by that name, just
+as Github Pages expects if it cannot resolve a URL.</p>
+<div class="codehilite"><pre><span class="c">### views ###</span>
+<span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">home</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;index.html&#39;</span><span class="p">,</span> <span class="n">pageid</span><span class="o">=</span><span class="s">&#39;page-home&#39;</span><span class="p">)</span>
+
+<span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/python.html&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">python_index</span><span class="p">():</span>
+    <span class="n">projects</span> <span class="o">=</span> <span class="n">python</span><span class="o">.</span><span class="n">published_pages</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;project-list.html&#39;</span><span class="p">,</span> <span class="n">pageid</span><span class="o">=</span><span class="s">&#39;page-project&#39;</span><span class="p">,</span> <span class="n">projects</span><span class="o">=</span><span class="n">projects</span><span class="p">)</span>
+
+<span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/project/atom.xml&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">project_feed</span><span class="p">():</span>
+    <span class="n">articles</span> <span class="o">=</span> <span class="n">python</span><span class="o">.</span><span class="n">lastmod_pages</span><span class="p">()[:</span><span class="mi">10</span><span class="p">]</span>
+    <span class="n">feed_updated</span> <span class="o">=</span> <span class="n">articles</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">lastmod</span><span class="p">()</span>
+    <span class="n">xml</span> <span class="o">=</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;atom.xml&#39;</span><span class="p">,</span> <span class="n">articles</span><span class="o">=</span><span class="n">articles</span><span class="p">,</span> <span class="n">feed_updated</span><span class="o">=</span><span class="n">feed_updated</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">app</span><span class="o">.</span><span class="n">response_class</span><span class="p">(</span><span class="n">xml</span><span class="p">,</span> <span class="n">mimetype</span><span class="o">=</span><span class="s">&#39;application/atom+xml&#39;</span><span class="p">)</span>
+
+<span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/python/&lt;name&gt;.html&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">python_detail</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">python</span><span class="o">.</span><span class="n">get_page</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;project-detail.html&#39;</span><span class="p">,</span> <span class="n">pageid</span><span class="o">=</span><span class="s">&#39;page-python&#39;</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">)</span>
+
+<span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/js/&lt;name&gt;.html&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">js_detail</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">javascript</span><span class="o">.</span><span class="n">get_page</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;project-detail.html&#39;</span><span class="p">,</span> <span class="n">pageid</span><span class="o">=</span><span class="s">&#39;page-js&#39;</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">)</span>
+
+<span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/sitemap.xml&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">generate_sitemap</span><span class="p">():</span>
+    <span class="c"># List of sites with manually added date(time) of last edit.</span>
+    <span class="n">sites</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;home&#39;</span><span class="p">,</span> <span class="n">_external</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>       <span class="s">&#39;2014-02-13&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;project_index&#39;</span><span class="p">,</span> <span class="n">_external</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>  <span class="s">&#39;2014-02-13&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;project_feed&#39;</span><span class="p">,</span> <span class="n">_external</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>   <span class="s">&#39;2014-02-15&#39;</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">sites</span> <span class="o">=</span> <span class="p">[(</span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span> <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;-&#39;</span><span class="p">)]))</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sites</span><span class="p">]</span> <span class="o">+</span> \
+            <span class="p">[(</span><span class="n">t</span><span class="o">.</span><span class="n">url</span><span class="p">(</span><span class="n">_external</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span> <span class="n">t</span><span class="o">.</span><span class="n">lastmod</span><span class="p">())</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">python</span><span class="o">.</span><span class="n">published_pages</span><span class="p">()]</span>
+    <span class="n">xml</span> <span class="o">=</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;sitemap.xml&#39;</span><span class="p">,</span> <span class="n">sites</span><span class="o">=</span><span class="n">sites</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">app</span><span class="o">.</span><span class="n">response_class</span><span class="p">(</span><span class="n">xml</span><span class="p">,</span> <span class="n">mimetype</span><span class="o">=</span><span class="s">&#39;application/atom+xml&#39;</span><span class="p">)</span>
+
+
+<span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/style.css&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">stylesheet</span><span class="p">():</span>
+    <span class="n">css</span> <span class="o">=</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;style.css&#39;</span><span class="p">,</span> <span class="n">pygments_css</span><span class="o">=</span><span class="n">PYGMENTS_CSS</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">app</span><span class="o">.</span><span class="n">response_class</span><span class="p">(</span><span class="n">css</span><span class="p">,</span> <span class="n">mimetype</span><span class="o">=</span><span class="s">&#39;text/css&#39;</span><span class="p">)</span>
+
+<span class="nd">@app.errorhandler</span><span class="p">(</span><span class="mi">404</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">not_found</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;404.html&#39;</span><span class="p">,</span> <span class="n">pageid</span><span class="o">=</span><span class="s">&#39;page-404&#39;</span><span class="p">)</span>
+
+<span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/404.html&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">error_freeze</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;explicitly set a route so that 404.html exists in gh-pages&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;404.html&#39;</span><span class="p">,</span> <span class="n">pageid</span><span class="o">=</span><span class="s">&#39;page-404&#39;</span><span class="p">)</span>
+
+
+<span class="c">### launch ###</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+
+
+<h3>References</h3>
+<ul>
+<li><a href="https://github.com/SimonSapin/exyr.org">Exyr.org source code, Simon Sapin</a></li>
+<li><a href="http://www.literateprogramming.com/knuthweb.pdf">Literate programming, Donald Knuth</a></li>
+<li><a href="http://flask.pocoo.org/">Flask</a></li>
+<li><a href="https://pythonhosted.org/Frozen-Flask/">Frozen Flask project</a></li>
+<li><a href="https://pages.github.com/">Github Pages</a></li>
+</ul>
+<h3>Further improvements</h3>
+<ul>
+<li>The view functions do not scale very well if the number of languages increases. I should
+consider a more generic approach.</li>
+<li>The parsing under <code>get_page()</code> is too deeply nested and complex and thereby incomprehensible.
+Consider splitting into a separate method.</li>
+<li>The regular expression is a bit messy: it leaves superfluous characters. Making this more
+elegant would eliminate the need of extra trimming.</li>
+</ul>
+  </section>
+  <section>
+    <!--DISQUS code-->
+    <div id="disqus_container">
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'snirp-eternal'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+    </div>
+  </section>
+</article>
+
+</main>
+</body>
+</html>
