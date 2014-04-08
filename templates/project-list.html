@@ -1,0 +1,11 @@
+{% extends 'layout-base.html' %}
+{% block content %}
+{% for p in projects %}
+<article>
+  <a href="{{ p.url() }}">
+    <h2>{{ p.title }}</h2>
+    <p>{{ p.summary }}</p>
+  </a>
+</article>
+{% endfor %}
+{% endblock %}
