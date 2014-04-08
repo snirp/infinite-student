@@ -201,7 +201,7 @@ pre {
 }
 
 #disqus_container {
-  background-image:url("snirp.github.io/infinite-student/static/images/noise_lightgrey.png");
+  background-image:url("static/images/noise_lightgrey.png");
   padding-top:20px;
   margin-top:50px;
   border-top:1px solid #bbb;
